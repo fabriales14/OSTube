@@ -35,7 +35,7 @@ char webpage[] =
         "<figcaption>Video de..</figcaption>"
         "<input  class='button' type='button' value='Ver video'>"
       "</figure>"
-      "<video> <source src='comida.mp4' type='video/mp4'></video> "
+      "<video> <source src='oveja.mp4' type='video/mp4'></video> "
       "<figure>"
         "<img src='dog2.jpeg'>"
         "<figcaption>Video de..</figcaption>"
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
     socklen_t sin_len = sizeof(client_addr);
     int fd_server, fd_client;
     /* Storing the contents sent by the browser (a request) */
-    char buf[10000];
+    char buf[10];
     int fdimg;
     int on = 1;
 
@@ -163,9 +163,9 @@ int main(int argc, char *argv[]){
                 printf("sent: %d", sent);
                 close(fdimg);
             }
-            if(!strncmp(buf, "GET /coomida.mp4", 13)){
+            if(!strncmp(buf, "GET /oveja.mp4", 13)){
                 printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                fdimg = open("comida.mp4", O_RDONLY);
+                fdimg = open("oveja.mp4", O_RDONLY);
                 int sent = sendfile(fd_client, fdimg, NULL, 100000);
                 printf("sent: %d", sent);
                 close(fdimg);
