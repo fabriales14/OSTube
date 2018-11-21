@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <sys/wait.h>
 
 // Struct de CLIENTE
 typedef struct client_data {
@@ -116,12 +117,13 @@ void *send_image(void *args) {
 }
 
 void *write_log(void *args){
-  //sem_wait(&mutex);
+  sem_wait(&mutex);
   printf("%s\n", "File log writing...");
-  FILE *log_file = fopen("server_log_file.txt", "a+");
+  FILE *log_file = fopen("./Index/server_log_file.txt", "a+");
+  fputs("\nGET ", log_file);
   fputs(args, log_file);
   fclose(log_file);
-  //sem_post(&mutex);
+  sem_post(&mutex);
 }
 
 
@@ -171,38 +173,40 @@ int main(int argc, char *argv[]){
         client_len = sizeof(client_addr);
         fd_client = accept(fd_server, (struct sockaddr *) &client_addr, &client_len);
 
-        if(fd_client == -1){
-            perror("Connection failed...\n");
-            continue;
+        if(fd_client < 0){
+            exit(1);
         }
 
-        printf("Got client connection...\n");
+        //printf("Got client connection...\n");
 
         if(!fork()){
             close(fd_server);
             memset(buf, 0, 2048);
             client_data *client = malloc(sizeof *client);
             client->client_sockfd = fd_client;
-            read(fd_client, buf, 2047); /* 2047 because of null char? */
 
+            read(fd_client, buf, 2047); /* 2047 because of null char? */
             /* Print the request on the console */
             //printf("Esta es la peticion %s\n", buf);
             char *token = strtok(buf, " ");
             token = strtok(NULL, " ");
             pthread_create(&write_log_thread, NULL, write_log, token);
+            pthread_join(write_log_thread,0);
 
             if (is_jpg(token+1)){
               memset(client->image_name, 0, sizeof(client->image_name));
               strcpy(client->image_name, token+1);
               pthread_create(&send_image_thread, NULL, &send_image, client);
+              pthread_join(send_image_thread,0);
 
             } else if (is_mp4(token+1)) {
               memset(client->video_name, 0, sizeof(client->video_name));
               strcpy(client->video_name, token+1);
               pthread_create(&send_video_thread, NULL, &send_video, client);
+              pthread_join(send_video_thread,0);
 
-            } else {
-              printf("Se ha conectado  GET /\n");
+            } else if (strcmp(token+1, "info") == 0){
+              printf("Se ha conectado  GET /info\n");
               this_directory = opendir(".");
               if (this_directory) {
                 while ((dir_ptr = readdir(this_directory)) != NULL){
@@ -213,10 +217,15 @@ int main(int argc, char *argv[]){
                   }
                 } exit(0);
               }
+            } else {
+              printf("Se ha conectado  GET /\n");
+              fdimg = open("./Index/index.txt", O_RDONLY);
+              int sent = sendfile(fd_client, fdimg, NULL, 10000);
+              close(fdimg);
+              printf("%s\n", "Page send");
             }
         }
         else close(fd_client);
-        /* Parent process */
         fflush(stdout);
     }
     sem_destroy(&mutex);
