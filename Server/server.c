@@ -110,20 +110,6 @@ void *send_song(void *args) {
     exit(0);
 }
 
-void open_file(){
-  FILE *fp;
-    char str[INPUT_STREAM];
-    char* filename = "\\galeria\\html.txt";
-
-    fp = fopen(filename, "r");
-    if (fp == NULL){
-        printf("Could not open file %s",filename);
-        return;
-    }
-    while (fgets(str, INPUT_STREAM, fp) != NULL)
-        printf("%s", str);
-    fclose(fp);
-}
 
 /* MAIN */
 int main() {
