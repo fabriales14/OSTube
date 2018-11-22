@@ -2,14 +2,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Galeria de fotos</title>
-    <style>
-    body{background-color: #dedede;font-family: 'calibri', Garamond, 'Comic Sans';}
-    .button {background-color: white;color: black;border: 2px solid #4CAF50;font-size: 22x;}
-    .gallery{display: flex;  width: 900px;  margin: auto;  justify-content: space-between;flex-wrap: wrap;}
-    figure{width: 200px;margin: 8px 0;border: 1px solid #777;padding: 8px;box-sizing: border-box;background-color: #fff;}
-    figure img{width: 100%;}
-    figure figcaption{text-align: center;padding: 8px 4px;}
-    </style>
+    <link rel = "stylesheet" type = "text/css" href="bootstrap/css/assets/bootstrap.min.css">
   </head>
   <body>
   <script>
@@ -44,9 +37,10 @@
 
     window.onload = loadInfo();
   </script>
+  <div class="container">
   <h1 align='center'>Galeria de videos</h1>
     <div id='gallery' class='gallery'>
-
+  </div>
     </div>
   </body>
 </html>

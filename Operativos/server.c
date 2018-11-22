@@ -15,7 +15,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <sys/wait.h>
-
+#include <math.h>
+#include <time.h>
 // Struct de CLIENTE
 typedef struct client_data {
     int client_sockfd;
@@ -59,7 +60,7 @@ bool is_txt(char *file) {
 /* HILO QUE ENVÍA LOS DATOS DEL VIDEO AL CLIENTE */
 void *send_video(void *args) {
     client_data *client = args;
-    printf("Enviando -> %s\n", client->video_name);
+    printf("Enviando video al cliente %s\n", client->video_name);
 
     /* Apertura y lectura del archivo solicitado por el cliente */
     char output_stream[1024];
@@ -89,8 +90,7 @@ void *send_video(void *args) {
 /* HILO QUE ENVÍA LOS DATOS DE LA IMAGEN AL CLIENTE */
 void *send_image(void *args) {
     client_data *client = args;
-    printf("Enviando -> %s\n", client->image_name);
-
+    printf("Enviando imagen al cliente %s\n", client->video_name);
     /* Apertura y lectura del archivo solicitado por el cliente */
     char output_stream[1024];
     memset(output_stream, 0, sizeof(output_stream));
@@ -118,15 +118,12 @@ void *send_image(void *args) {
 
 void *write_log(void *args){
   sem_wait(&mutex);
-  printf("%s\n", "File log writing...");
   FILE *log_file = fopen("./Index/server_log_file.txt", "a+");
-  fputs("\nGET ", log_file);
+  fputs("\nSolicito ", log_file);
   fputs(args, log_file);
   fclose(log_file);
   sem_post(&mutex);
 }
-
-
 int main(int argc, char *argv[]){
     DIR *this_directory;
     struct sockaddr_in server_addr, client_addr;
@@ -141,11 +138,17 @@ int main(int argc, char *argv[]){
     int on = 1;
     int i = 0;
 
+    time_t t;
+    struct tm *tm;
+    char fechayhora[100];
+
+
     fd_server = socket(AF_INET, SOCK_STREAM, 0);
     if(fd_server < 0){
         perror("socket");
         exit(1);
     }
+
 
     setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int));
 
@@ -174,7 +177,11 @@ int main(int argc, char *argv[]){
         fd_client = accept(fd_server, (struct sockaddr *) &client_addr, &client_len);
 
         if(fd_client < 0){
-            exit(1);
+          t=time(NULL);
+          tm=localtime(&t);
+          strftime(fechayhora, 100, "%d/%m/%Y/ %H:%M", tm);
+          printf ("Conexión a las: %s\n", fechayhora);
+          exit(1);
         }
 
         //printf("Got client connection...\n");
@@ -206,7 +213,6 @@ int main(int argc, char *argv[]){
               pthread_join(send_video_thread,0);
 
             } else if (strcmp(token+1, "info") == 0){
-              printf("Se ha conectado  GET /info\n");
               this_directory = opendir(".");
               if (this_directory) {
                 while ((dir_ptr = readdir(this_directory)) != NULL){
@@ -218,11 +224,9 @@ int main(int argc, char *argv[]){
                 } exit(0);
               }
             } else {
-              printf("Se ha conectado  GET /\n");
               fdimg = open("./Index/index.txt", O_RDONLY);
               int sent = sendfile(fd_client, fdimg, NULL, 10000);
               close(fdimg);
-              printf("%s\n", "Page send");
             }
         }
         else close(fd_client);
