@@ -1,0 +1,62 @@
+HTTP/1.1 200 OK
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <title>Galería de fotos</title>
+    <style>
+     body{font-family: 'calibri', Garamond, 'Comic Sans';}
+    .button {background: white;color: black;border: 2px solid #4CAF50;font-size: 22x;}
+    .gallery{margin: auto;justify-content: space-between;  display: flex;  flex: 25%;}
+    figure{width: 200px;margin: 8px 0;border: 1px solid #777;
+    padding: 8px;box-sizing: border-box;background-color: #fff;}
+    figure img{width: 100%;margin-top: 8px;vertical-align: middle;}
+    figure figcaption{text-align: center;padding: 8px 4px;}
+    @media (min-width: 992px) and (max-width: 1199px) {
+    .gallery{flex: 100%;max-width: 100%;}}
+    @media (min-width: 768px) and (max-width: 991px) {.gallery{
+    flex: 75%;max-width: 75%;}
+    @media only screen and (max-width:767px) {.gallery{flex: 100%;
+    max-width: 100%;}}
+    </style>
+  </head>
+  <body background= "fondo3.jpg">
+  <script>
+    function loadInfo() {
+      var http = new XMLHttpRequest();
+      http.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          var info = this.responseText;
+          var res = info.split("\n");
+          for (var i=0; i < res.length-1; i++){
+            var figure = document.createElement("FIGURE");
+            var img = document.createElement("img");
+            var br = document.createElement("br");
+            var imgName = res[i].split(" ");
+            img.setAttribute("src", "http://localhost:8000/" + imgName[0] + ".jpg");
+            var tittle = document.createTextNode(res[i]);
+            var link = document.createElement("a");
+            link.setAttribute("tarjet", "_blank");
+            link.setAttribute("href", "http://localhost:8000/" + imgName[0] + ".mp4");
+            link.innerHTML = "Ver video";
+            figure.appendChild(img);
+            figure.appendChild(tittle);
+            figure.appendChild(br);
+            figure.appendChild(link);
+            document.getElementById("gallery").appendChild(figure);
+          }
+        }
+      }
+      http.open("GET", "http://localhost:8000/info", true);
+      http.send();
+    }
+
+    window.onload = loadInfo();
+  </script>
+  <h1 style="color:white"  align='center'>Galería de fotos y videos</h1>
+    <div id='gallery' class='gallery'>
+  </div>
+  </body>
+</html>
