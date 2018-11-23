@@ -118,12 +118,31 @@ void *send_image(void *args) {
 
 void *write_log(void *args){
   sem_wait(&mutex);
+  time_t t;
+  struct tm *tm;
+  char fechayhora[100];
+  t=time(NULL);
+  tm=localtime(&t);
+  strftime(fechayhora, 100, "%d/%m/%Y/ %H:%M", tm);
+
   FILE *log_file = fopen("./Index/server_log_file.txt", "a+");
-  fputs("\nSolicito ", log_file);
+  fputs("\nSolicitó  ", log_file);
   fputs(args, log_file);
+  fputs(" a las: ", log_file);
+  fputs(fechayhora,log_file);
   fclose(log_file);
   sem_post(&mutex);
 }
+unsigned checksum(void *buffer, size_t len, unsigned int seed)
+{
+      unsigned char *buf = (unsigned char *)buffer;
+      size_t i;
+
+      for (i = 0; i < len; ++i)
+            seed += (unsigned int)(*buf++);
+      return seed;
+}
+
 int main(int argc, char *argv[]){
     DIR *this_directory;
     struct sockaddr_in server_addr, client_addr;
@@ -227,7 +246,19 @@ int main(int argc, char *argv[]){
               fdimg = open("./Index/index.txt", O_RDONLY);
               int sent = sendfile(fd_client, fdimg, NULL, 10000);
               close(fdimg);
-            }
+              //checksum
+                FILE *fp;
+                char buf[4096], *file = "./Index/index.txt";
+
+                if (NULL == (fp = fopen(file, "rb")))
+                {
+                      printf("Unable to open %s for reading\n", file);
+                      return -1;
+                }
+                fdimg = fread(buf, sizeof(char), sizeof(buf), fp);
+                printf("%d bytes read\n", fdimg);
+                printf("The checksum of %s is %#x\n", file, checksum(buf, fdimg, 0));
+          }
         }
         else close(fd_client);
         fflush(stdout);
